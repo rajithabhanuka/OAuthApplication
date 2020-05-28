@@ -52,25 +52,27 @@ public class OAuthSecurityFilter extends OncePerRequestFilter {
 
             Iterator headerParamIterator = authRequestParams.keySet().iterator();
 
-            String[] signature;
-            int countedparametersinSingature = 0;
+            String[] headerParamValue;
+            int countedparametersinheaderParamValue = 0;
             while (headerParamIterator.hasNext()) {
-                String headerParam = (String) headerParamIterator.next();
-                signature = (String[]) authRequestParams.get(headerParam);
-                StringBuffer calculatedSignature = new StringBuffer();
-                String[] requiredOAuthParameter = signature;
-                int len$ = signature.length;
+                String headerParamkey = (String) headerParamIterator.next();
+                headerParamValue = (String[]) authRequestParams.get(headerParamkey);
+                StringBuffer stringBuffer = new StringBuffer();
+                //    String[] requiredOAuthParameter = headerParamValue;
+                int len$ = headerParamValue.length;
+
+                /*Check for request param contains array values */
 
                 for (int i$ = 0; i$ < len$; ++i$) {
-                    String value = requiredOAuthParameter[i$];
-                    countedparametersinSingature++;
-                    calculatedSignature.append(value);
-                    if (countedparametersinSingature < signature.length) {
-                        calculatedSignature.append(Constants.COMMA);
+                    String value = headerParamValue[i$];
+                    countedparametersinheaderParamValue++;
+                    stringBuffer.append(value);
+                    if (countedparametersinheaderParamValue < headerParamValue.length) {
+                        stringBuffer.append(Constants.COMMA);
                     }
                 }
 
-                requestParamMap.put(headerParam, calculatedSignature.toString());
+                requestParamMap.put(headerParamkey, stringBuffer.toString());
             }
 
             StringBuffer missingAuthParams = new StringBuffer();
@@ -90,7 +92,7 @@ public class OAuthSecurityFilter extends OncePerRequestFilter {
             }
 
             if (MissingAuthParam) {
-                ((HttpServletResponse) response).sendError(400, String.format(Constants.ERROR_MESSAGE_FORMAT_MISSING_PARAMS, missingAuthParams));
+                response.sendError(400, String.format(Constants.ERROR_MESSAGE_FORMAT_MISSING_PARAMS, missingAuthParams));
             } else {
 
                 /*Creating a signature For HTTPS requests*/
