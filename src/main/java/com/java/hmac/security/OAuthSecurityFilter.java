@@ -19,10 +19,6 @@ public class OAuthSecurityFilter extends OncePerRequestFilter {
 
     private static Log LOGGER = LogFactory.getLog(OAuthSecurityFilter.class);
 
-    private static final String HTTPS_PROTOCOL = "https";
-    private static final String HTTP_PROTOCOL = "http";
-    private static final String ERROR_SIGNATURE_MISMATCH_LOG_FORMAT = "OAuth calculation failed! requestParams: [%s], method: [%s], url: [%s], OAuthHeader: [%s], signature_https: [%s],signature_http: [%s]";
-
     @Autowired
     private OAuthUtil oAuthUtil;
 
@@ -39,35 +35,37 @@ public class OAuthSecurityFilter extends OncePerRequestFilter {
 
             Map<String, String> authHeaderParams = null;
 
+            /*Checking for requestOAuthHeader whether it singed with OAuth or Not*/
+
             if (requestAuthHeader != null && requestAuthHeader.contains(Constants.OAUTH_KEYWORD)) {
-                /*Checking whether OAuth request or Not */
+
+                /*Decoding auth header and put it to requestParamMap map */
 
                 authHeaderParams = oAuthUtil.decodeAuthorization(requestAuthHeader);
                 authHeaderParams.remove(Constants.OAUTH_REALM);
                 requestParamMap.putAll(authHeaderParams);
             }
 
-            /*Get the request parameters in the request to create the signature*/
+            /*Get the request parameters in the request and put them to a Map<String, String[]>*/
 
             Map<String, String[]> authRequestParams = request.getParameterMap();
 
             Iterator headerParamIterator = authRequestParams.keySet().iterator();
 
             String[] signature;
-            int recalculatedSignature;
+            int countedparametersinSingature = 0;
             while (headerParamIterator.hasNext()) {
                 String headerParam = (String) headerParamIterator.next();
                 signature = (String[]) authRequestParams.get(headerParam);
                 StringBuffer calculatedSignature = new StringBuffer();
-                recalculatedSignature = 0;
                 String[] requiredOAuthParameter = signature;
                 int len$ = signature.length;
 
                 for (int i$ = 0; i$ < len$; ++i$) {
                     String value = requiredOAuthParameter[i$];
-                    ++recalculatedSignature;
+                    countedparametersinSingature++;
                     calculatedSignature.append(value);
-                    if (recalculatedSignature < signature.length) {
+                    if (countedparametersinSingature < signature.length) {
                         calculatedSignature.append(Constants.COMMA);
                     }
                 }
@@ -76,26 +74,26 @@ public class OAuthSecurityFilter extends OncePerRequestFilter {
             }
 
             StringBuffer missingAuthParams = new StringBuffer();
-            boolean availableMissingAuthParam = false;
-            signature = OAuthUtil.REQUIRED_OAUTH_PARAMETERS;
-            int signatureLength = signature.length;
+            boolean MissingAuthParam = false;
+            String[] validateSignature = Constants.REQUIRED_OAUTH_PARAMETERS;
+            int signatureLength = validateSignature.length;
 
             /*Validating the Auth Parameters with the Request*/
 
-            for (recalculatedSignature = 0; recalculatedSignature < signatureLength; ++recalculatedSignature) {
-                String signatureParam = signature[recalculatedSignature];
+            for (int i = 0; i < signatureLength; i++) {
+                String signatureParam = validateSignature[i];
                 if (!requestParamMap.containsKey(signatureParam)) {
                     LOGGER.error("Missing OAuth parameter: [" + signatureParam + "]");
                     missingAuthParams.append(Constants.SPACE + signatureParam);
-                    availableMissingAuthParam = true;
+                    MissingAuthParam = true;
                 }
             }
 
-            if (availableMissingAuthParam) {
+            if (MissingAuthParam) {
                 ((HttpServletResponse) response).sendError(400, String.format(Constants.ERROR_MESSAGE_FORMAT_MISSING_PARAMS, missingAuthParams));
             } else {
 
-                /*For HTTPS requests*/
+                /*Creating a signature For HTTPS requests*/
 
                 String authSignature = (String) requestParamMap.remove(Constants.OAUTH_SIGNATURE);
                 String signatureHttps = (new AuthMessageSigner()).sign(
@@ -105,11 +103,14 @@ public class OAuthSecurityFilter extends OncePerRequestFilter {
                         getHttpsRequestURL(request),
                         requestParamMap
                 );
+
+                /*Checking the recreated signature and the signature that was sent by request*/
+
                 if (authSignature.equals(signatureHttps)) {
                     filterChain.doFilter(request, response);
                 } else {
 
-                    /*For HTTP requests*/
+                    /*Creating a signature For HTTP requests*/
 
                     String signatureHttp = (new AuthMessageSigner()).sign(
                             oAuthUtil.retrieveSharedSecret((String) requestParamMap.get(Constants.OAUTH_CONSUMER_KEY)),
@@ -118,10 +119,13 @@ public class OAuthSecurityFilter extends OncePerRequestFilter {
                             getHttpRequestURL(request),
                             requestParamMap
                     );
+
+                    /*Checking the recreated signature and the signature that was sent by request*/
+
                     if (authSignature.equals(signatureHttp)) {
                         filterChain.doFilter(request, response);
                     } else {
-                        LOGGER.error(String.format(ERROR_SIGNATURE_MISMATCH_LOG_FORMAT, requestParamMap.toString(), request.getMethod(), request.getRequestURL().toString(), requestAuthHeader, signatureHttps, signatureHttp));
+                        LOGGER.error(String.format(Constants.ERROR_SIGNATURE_MISMATCH_LOG_FORMAT, requestParamMap.toString(), request.getMethod(), request.getRequestURL().toString(), requestAuthHeader, signatureHttps, signatureHttp));
                         response.sendError(401, Constants.ERROR_MESSAGE_SIGNATURE_MISMATCH);
                     }
                 }
@@ -141,7 +145,7 @@ public class OAuthSecurityFilter extends OncePerRequestFilter {
      */
     private String getHttpsRequestURL(HttpServletRequest request) {
         String requestUrl = request.getRequestURL().toString();
-        requestUrl = requestUrl.replaceFirst(request.getScheme(), HTTPS_PROTOCOL);
+        requestUrl = requestUrl.replaceFirst(request.getScheme(), Constants.HTTPS_PROTOCOL);
         return requestUrl;
     }
 
@@ -153,7 +157,7 @@ public class OAuthSecurityFilter extends OncePerRequestFilter {
      */
     private String getHttpRequestURL(HttpServletRequest request) {
         String requestUrl = request.getRequestURL().toString();
-        requestUrl = requestUrl.replaceFirst(request.getScheme(), HTTP_PROTOCOL);
+        requestUrl = requestUrl.replaceFirst(request.getScheme(), Constants.HTTP_PROTOCOL);
         return requestUrl;
     }
 }

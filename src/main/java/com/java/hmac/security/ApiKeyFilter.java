@@ -16,9 +16,6 @@ public class ApiKeyFilter extends OncePerRequestFilter {
 
     private static Log LOGGER = LogFactory.getLog(ApiKeyFilter.class);
 
-    private static final String MISSING_HEADER = "Authorization header required!";
-    private static final String INVALID_API_KEY = "API key is invalid!";
-
     @Value( "${api.key}" )
     private String apiKey;
 
@@ -34,13 +31,13 @@ public class ApiKeyFilter extends OncePerRequestFilter {
             if (requestAuthHeader.equals(apiKey)) {
                 filterChain.doFilter(httpServletRequest, httpServletResponse);
             } else {
-                httpServletResponse.sendError(401, INVALID_API_KEY);
+                httpServletResponse.sendError(401, Constants.INVALID_API_KEY);
             }
 
 
         } else {
             LOGGER.error("Missing OAuthorization header");
-            httpServletResponse.sendError(400, MISSING_HEADER);
+            httpServletResponse.sendError(400, Constants.MISSING_HEADER);
         }
 
     }

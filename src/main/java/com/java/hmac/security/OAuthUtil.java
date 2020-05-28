@@ -20,16 +20,6 @@ public class OAuthUtil {
     @Autowired
     private AuthApiCredentialsService apiCredentialsService;
 
-    public static final String[] REQUIRED_OAUTH_PARAMETERS = new String[]{
-            Constants.OAUTH_CONSUMER_KEY,
-            Constants.OAUTH_SIGNATURE_METHOD, Constants.OAUTH_SIGNATURE,
-            Constants.OAUTH_TIMESTAMP,
-            Constants.OAUTH_NONCE,
-            Constants.OAUTH_VERSION};
-    public static final String OAUTH_POST_BODY_PARAMETER = "oauth_body_hash";
-    private static final Pattern AUTHORIZATION = Pattern.compile("\\s*(\\w*)\\s+(.*)");
-    private static final Pattern KEY_VALUE_PAIR = Pattern.compile("(\\S*)\\s*\\=\\s*\"([^\"]*)\"");
-    private static final String AUTHORIZATION_MATCHER_SPLIT_FORMAT = "\\s*,\\s*";
     private static final Map<String, String> algorithms = new HashMap<String, String>();
 
     static {
@@ -41,16 +31,16 @@ public class OAuthUtil {
         HashMap oauthParameters = new HashMap();
 
         if(authorization != null) {
-            Matcher m = AUTHORIZATION.matcher(authorization);
+            Matcher m = Constants.AUTHORIZATION.matcher(authorization);
 
             if(m.matches() && Constants.OAUTH_KEYWORD.equalsIgnoreCase(m.group(1))) {
 
-                String[] arr$ = m.group(2).split(AUTHORIZATION_MATCHER_SPLIT_FORMAT);
+                String[] arr$ = m.group(2).split(Constants.AUTHORIZATION_MATCHER_SPLIT_FORMAT);
                 int len$ = arr$.length;
 
                 for(int i$ = 0; i$ < len$; ++i$) {
                     String keyValuePair = arr$[i$];
-                    m = KEY_VALUE_PAIR.matcher(keyValuePair);
+                    m = Constants.KEY_VALUE_PAIR.matcher(keyValuePair);
                     if(m.matches()) {
                         String key = decodePercent(m.group(Integer.parseInt(Constants.CRYPTO_KEY_INDEX_ONE)));
                         String value = decodePercent(m.group(Integer.parseInt(Constants.CRYPTO_KEY_INDEX_TWO)));
