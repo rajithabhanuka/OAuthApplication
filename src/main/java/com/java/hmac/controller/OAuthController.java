@@ -8,8 +8,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 
+/*
+Bhanuka 28/05/2020
+*/
+
 @RestController
-public class HmacController {
+public class OAuthController {
 
     @RequestMapping(value = "/o/api/users/{userId}", method = RequestMethod.GET, consumes = Constants.CONSUME_APPLICATION_JSON)
     public String getUser(HttpServletResponse response,

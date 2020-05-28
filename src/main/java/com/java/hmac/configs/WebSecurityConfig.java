@@ -7,6 +7,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+/*
+Bhanuka 28/05/2020
+*/
+
 @Configuration
 public class WebSecurityConfig {
     private static final String API_KEY_URL_PATTERN = "/a/*";
