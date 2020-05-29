@@ -52,41 +52,41 @@ public class OAuthSecurityFilter extends OncePerRequestFilter {
 
             /*Get the request parameters in the request and put them to a Map<String, String[]>*/
 
-            Map<String, String[]> authRequestParams = request.getParameterMap();
+            Map<String, String[]> requestParams = request.getParameterMap();
 
-            Iterator headerParamIterator = authRequestParams.keySet().iterator();
+            Iterator headerParamIterator = requestParams.keySet().iterator();
 
-            String[] headerParamValue;
-            int countedparametersinheaderParamValue = 0;
+            String[] paramValue;
+            int ValueCount = 0;
             while (headerParamIterator.hasNext()) {
-                String headerParamkey = (String) headerParamIterator.next();
-                headerParamValue = (String[]) authRequestParams.get(headerParamkey);
+                String paramkey = (String) headerParamIterator.next();
+                paramValue = requestParams.get(paramkey);
                 StringBuffer stringBuffer = new StringBuffer();
-                //    String[] requiredOAuthParameter = headerParamValue;
-                int len$ = headerParamValue.length;
+                int len = paramValue.length;
 
                 /*Check for request param contains array values */
 
-                for (int i$ = 0; i$ < len$; ++i$) {
-                    String value = headerParamValue[i$];
-                    countedparametersinheaderParamValue++;
+                for (int i = 0; i < len; ++i) {
+                    String value = paramValue[i];
+                    ValueCount++;
                     stringBuffer.append(value);
-                    if (countedparametersinheaderParamValue < headerParamValue.length) {
+                    if (ValueCount < len) {
                         stringBuffer.append(Constants.COMMA);
                     }
                 }
 
-                requestParamMap.put(headerParamkey, stringBuffer.toString());
+                /*Putting every request param to the param, if param value is an array, then it put with a comma*/
+
+                requestParamMap.put(paramkey, stringBuffer.toString());
             }
 
             StringBuffer missingAuthParams = new StringBuffer();
             boolean MissingAuthParam = false;
             String[] validateSignature = Constants.REQUIRED_OAUTH_PARAMETERS;
-            int signatureLength = validateSignature.length;
 
             /*Validating the Auth Parameters with the Request*/
 
-            for (int i = 0; i < signatureLength; i++) {
+            for (int i = 0; i < validateSignature.length; i++) {
                 String signatureParam = validateSignature[i];
                 if (!requestParamMap.containsKey(signatureParam)) {
                     LOGGER.error("Missing OAuth parameter: [" + signatureParam + "]");
@@ -101,10 +101,10 @@ public class OAuthSecurityFilter extends OncePerRequestFilter {
 
                 /*Creating a signature For HTTPS requests*/
 
-                String authSignature = (String) requestParamMap.remove(Constants.OAUTH_SIGNATURE);
+                String authSignature = requestParamMap.remove(Constants.OAUTH_SIGNATURE);
                 String signatureHttps = (new AuthMessageSigner()).sign(
-                        oAuthUtil.retrieveSharedSecret((String) requestParamMap.get(Constants.OAUTH_CONSUMER_KEY)),
-                        oAuthUtil.mapToJava((String) requestParamMap.get(Constants.OAUTH_SIGNATURE_METHOD)),
+                        oAuthUtil.retrieveSharedSecret(requestParamMap.get(Constants.OAUTH_CONSUMER_KEY)),
+                        oAuthUtil.mapToJava(requestParamMap.get(Constants.OAUTH_SIGNATURE_METHOD)),
                         request.getMethod(),
                         getHttpsRequestURL(request),
                         requestParamMap

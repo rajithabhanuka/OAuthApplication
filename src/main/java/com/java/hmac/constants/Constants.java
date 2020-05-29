@@ -61,7 +61,7 @@ public interface Constants {
             Constants.OAUTH_TIMESTAMP,
             Constants.OAUTH_NONCE,
             Constants.OAUTH_VERSION};
-    String OAUTH_POST_BODY_PARAMETER = "oauth_body_hash";
+
     Pattern AUTHORIZATION = Pattern.compile("\\s*(\\w*)\\s+(.*)");
     Pattern KEY_VALUE_PAIR = Pattern.compile("(\\S*)\\s*\\=\\s*\"([^\"]*)\"");
     String AUTHORIZATION_MATCHER_SPLIT_FORMAT = "\\s*,\\s*";
@@ -75,6 +75,6 @@ public interface Constants {
 
     String HTTPS_PROTOCOL = "https";
     String HTTP_PROTOCOL = "http";
-    String ERROR_SIGNATURE_MISMATCH_LOG_FORMAT = "OAuth calculation failed! requestParams: [%s], method: [%s], url: [%s], OAuthHeader: [%s], signature_https: [%s],signature_http: [%s]";
+    String ERROR_SIGNATURE_MISMATCH_LOG_FORMAT = "OAuth signature calculation failed ! requestParams: [%s], method: [%s], url: [%s], OAuthHeader: [%s], signature_https: [%s],signature_http: [%s]";
 
 }
