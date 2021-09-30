@@ -128,6 +128,9 @@ public class OAuthSecurityFilter extends OncePerRequestFilter {
 
                     /*Checking the recreated signature and the signature that was sent by request*/
 
+                    System.out.println("Provided Signature "+ authSignature);
+                    System.out.println("New Signature "+ signatureHttp);
+
                     if (authSignature.equals(signatureHttp)) {
                         filterChain.doFilter(request, response);
                     } else {
